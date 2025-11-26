@@ -740,9 +740,13 @@ export abstract class Reactor<T> {
         this.errorHandler(command, exchange, error);
       }
     } else {
-      const exchange =
-        exchangeId !== undefined && this.exchanges.get(exchangeId, source);
-      assert(exchange, `Unknown exchange id: ${exchangeId}!`);
+      const exchange = exchangeId !== undefined && this.exchanges.get(exchangeId, source);
+      if (!exchange) {
+        console.error(`Unknown exchange id: ${exchangeId}`); 
+        // note: temp swapped this to an error, will discuss with @elementbound how these errors should be processed
+        // this used to crash the program when bad data came over TCP, this means things like botnets would crash the application.
+        return;
+      }
       exchange.push(command);
     }
   }
