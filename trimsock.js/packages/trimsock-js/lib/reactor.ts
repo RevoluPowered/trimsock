@@ -566,8 +566,8 @@ export abstract class Reactor<T> {
   /**
    * Register a command handler
    *
-* Note that one command can only have one handler active at a time. Calling
-* this method will replace the currently active handler, if it exists.
+   * Note that one command can only have one handler active at a time. Calling
+   * this method will replace the currently active handler, if it exists.
    *
    * @param commandName command name
    * @param handler callback function
@@ -582,9 +582,9 @@ export abstract class Reactor<T> {
    *
    * Whenever a command is received that has no associated handler, the unknown
    * command handler is called.
-  *
-  * Note that there's only one handler at any time, calling this method will
-  * replace the currently active handler.
+   *
+   * Note that there's only one handler at any time, calling this method will
+   * replace the currently active handler.
    *
    * @param handler callback function
    */
@@ -598,9 +598,9 @@ export abstract class Reactor<T> {
    *
    * Whenever an error occurs during command processing ( e.g. in one of the
    * registered handlers ), the error handler is called.
-  *
-  * Note that there's only one handler at any time, calling this method will
-  * replace the currently active handler.
+   *
+   * Note that there's only one handler at any time, calling this method will
+   * replace the currently active handler.
    *
    * @param handler callback function
    */
@@ -610,17 +610,17 @@ export abstract class Reactor<T> {
   }
 
   /**
-  * Register an ingest error handler
-  *
-  * If the reactor receives input that it can't manage ( e.g. it's malformed or
-  * the command is too long ), it rejects the command and calls the ingest error
-  * handler.
-  *
-  * Note that there's only one handler at any time, calling this method will
-  * replace the currently active handler.
-  *
-  * @param handler callback function
-*/
+   * Register an ingest error handler
+   *
+   * If the reactor receives input that it can't manage ( e.g. it's malformed or
+   * the command is too long ), it rejects the command and calls the ingest error
+   * handler.
+   *
+   * Note that there's only one handler at any time, calling this method will
+   * replace the currently active handler.
+   *
+   * @param handler callback function
+   */
   public onIngestError(handler: IngestErrorHandler): this {
     this.ingestErrorHandler = handler;
     return this;
@@ -718,11 +718,11 @@ export abstract class Reactor<T> {
       if (typeof data === "string") reader.ingest(Buffer.from(data, "utf8"));
       else reader.ingest(data);
 
-      await Promise.all(reader.commands()
-        .map(it => this.handle(new Command(it), source))
+      await Promise.all(
+        reader.commands().map((it) => this.handle(new Command(it), source)),
       );
     } catch (e) {
-      this.ingestErrorHandler(e, data)
+      this.ingestErrorHandler(e, data);
     }
   }
 
@@ -758,8 +758,7 @@ export abstract class Reactor<T> {
 
       let filterIdx = 0;
       const next = async () => {
-        if (filterIdx >= this.filters.length)
-          await handler(command, exchange);
+        if (filterIdx >= this.filters.length) await handler(command, exchange);
         else {
           filterIdx += 1;
           await this.filters[filterIdx - 1](next, command, exchange);
