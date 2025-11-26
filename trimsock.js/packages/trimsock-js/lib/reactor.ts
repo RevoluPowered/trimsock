@@ -683,15 +683,19 @@ export abstract class Reactor<T> {
    * @param data incoming data
    * @param source source connection
    */
-  public ingest(data: Buffer | string, source: T): void {
-    // TODO: Invoke error handler when ingest fails?
-    const reader = this.ensureReaderFor(source);
+  public async ingest(data: Buffer | string, source: T): Promise<void> {
+    try {
+      const reader = this.ensureReaderFor(source);
 
-    if (typeof data === "string") reader.ingest(Buffer.from(data, "utf8"));
-    else reader.ingest(data);
+      if (typeof data === "string") reader.ingest(Buffer.from(data, "utf8"));
+      else reader.ingest(data);
 
-    for (const item of reader.commands()) {
-      this.handle(new Command(item), source);
+      await Promise.all(reader.commands()
+        .map(it => this.handle(new Command(it), source))
+      );
+    } catch (e) {
+      // TODO: Error handler
+      console.error("Ingest failed!", e)
     }
   }
 
@@ -727,7 +731,8 @@ export abstract class Reactor<T> {
 
       let filterIdx = 0;
       const next = async () => {
-        if (filterIdx >= this.filters.length) await handler(command, exchange);
+        if (filterIdx >= this.filters.length)
+          await handler(command, exchange);
         else {
           filterIdx += 1;
           await this.filters[filterIdx - 1](next, command, exchange);
@@ -740,13 +745,9 @@ export abstract class Reactor<T> {
         this.errorHandler(command, exchange, error);
       }
     } else {
-      const exchange = exchangeId !== undefined && this.exchanges.get(exchangeId, source);
-      if (!exchange) {
-        console.error(`Unknown exchange id: ${exchangeId}`); 
-        // note: temp swapped this to an error, will discuss with @elementbound how these errors should be processed
-        // this used to crash the program when bad data came over TCP, this means things like botnets would crash the application.
-        return;
-      }
+      const exchange =
+        exchangeId !== undefined && this.exchanges.get(exchangeId, source);
+      assert(exchange, `Unknown exchange id: ${exchangeId}!`);
       exchange.push(command);
     }
   }
