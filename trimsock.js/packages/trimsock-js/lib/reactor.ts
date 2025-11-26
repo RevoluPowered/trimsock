@@ -31,7 +31,10 @@ export type CommandErrorHandler<T> = (
   error: unknown,
 ) => void;
 
-export type IngestErrorHandler = (error: unknown, input: Buffer) => void;
+export type IngestErrorHandler = (
+  error: unknown,
+  input: string | Buffer,
+) => void;
 
 /**
  * Callback type for generating exchange ID's
